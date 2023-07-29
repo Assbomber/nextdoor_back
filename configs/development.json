@@ -1,0 +1,9 @@
+{
+	"appName":"myzone",
+	"environment": "development",
+	"server":{
+	  "readTimeout":20,
+	  "writeTimeout":20,
+	  "idleTimeout":120
+	}
+  }
