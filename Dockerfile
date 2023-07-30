@@ -1,6 +1,6 @@
 FROM golang:1.20.5-alpine
 WORKDIR /myzone
 COPY . .
-RUN go build -o build/myzone .
+RUN go build -o build/myzone ./cmd/myzone
 CMD ["./build/myzone"]
 EXPOSE 8080

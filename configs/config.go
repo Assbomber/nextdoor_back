@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/assbomber/myzone/constants"
+	"github.com/assbomber/myzone/pkg/constants"
 	"github.com/spf13/viper"
 )
 

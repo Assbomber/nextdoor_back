@@ -1,10 +1,10 @@
-package utils
+package logger
 
 import (
 	"os"
 
 	"github.com/assbomber/myzone/configs"
-	"github.com/assbomber/myzone/constants"
+	"github.com/assbomber/myzone/pkg/constants"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

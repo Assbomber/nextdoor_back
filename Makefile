@@ -1,9 +1,9 @@
 # TODO: Add go gingansta
 dev:
-	@go run .
+	@go run cmd/myzone/main.go
 
 start:
-	@go build -o build/myzone .
+	@go build -o build/myzone ./cmd/myzone
 	@./build/myzone
 
 migrateup:
