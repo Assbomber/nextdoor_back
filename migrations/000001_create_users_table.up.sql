@@ -5,6 +5,5 @@ CREATE TABLE "users" (
   "email" varchar NOT NULL,
   "password" varchar NOT NULL,
   "phone" varchar,
-  "birthdate" date NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );

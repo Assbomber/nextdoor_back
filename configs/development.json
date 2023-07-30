@@ -2,6 +2,7 @@
 	"appName":"myzone",
 	"environment": "development",
 	"server":{
+	"port":8010,
 	  "readTimeout":20,
 	  "writeTimeout":20,
 	  "idleTimeout":120
