@@ -92,11 +92,11 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 	// check if user already exist
 	user, err := as.queries.GetUserByEmail(ctx, args.Email)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		if user.ID == 0 {
-			return nil, errors.Wrap(err, "Error getting user")
-		} else {
-			return nil, constants.ErrUserAlreadyExist
-		}
+		return nil, errors.Wrap(err, "Error getting user")
+	}
+	// User already exist
+	if user.ID != 0 {
+		return nil, constants.ErrUserAlreadyExist
 	}
 
 	fmt.Println(user, err, "checkkk")
