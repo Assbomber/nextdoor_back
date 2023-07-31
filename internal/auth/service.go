@@ -99,8 +99,6 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 		return nil, constants.ErrUserAlreadyExist
 	}
 
-	fmt.Println(user, err, "checkkk")
-
 	// Encryping pass
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(args.Password), bcrypt.DefaultCost)
 	if err != nil {

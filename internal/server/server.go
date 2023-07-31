@@ -7,6 +7,7 @@ import (
 
 	"github.com/assbomber/myzone/pkg/constants"
 	"github.com/assbomber/myzone/pkg/logger"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -37,6 +38,7 @@ func (s *Server) Start() {
 
 	router := gin.Default()
 	s.Router = router
+	router.Use(cors.Default())
 	router.UseH2C = true
 
 	router.HandleMethodNotAllowed = true
