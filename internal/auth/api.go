@@ -107,5 +107,5 @@ func (h *Handler) SendVerificationEmail(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusOK, gin.H{"message": "verification email sent"})
 }
