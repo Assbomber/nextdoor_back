@@ -50,6 +50,8 @@ func HandleErrorResponses(log *logger.Logger, c *gin.Context, err error, extra .
 		} else {
 			c.JSON(http.StatusBadRequest, ErrResponse{Message: err.Error()})
 		}
+	case constants.ErrUserAlreadyExist:
+		c.JSON(http.StatusBadRequest, ErrResponse{Message: err.Error()})
 	case constants.ErrInvalidOTP:
 		c.JSON(http.StatusUnauthorized, ErrResponse{Message: err.Error()})
 	case constants.ErrUnexpectedSigningMethod:

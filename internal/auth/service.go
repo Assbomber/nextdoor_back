@@ -89,6 +89,16 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 		return nil, constants.ErrInvalidOTP
 	}
 
+	// check if user already exist
+	user, err := as.queries.GetUserByEmail(ctx, args.Email)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		if user.ID == 0{
+			return nil, errors.Wrap(err, "Error getting user")
+		}else{
+			return nil, constants.ErrUserAlreadyExist
+		}
+	}
+
 	// Encryping pass
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(args.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -96,7 +106,7 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 	}
 
 	// Creating user in db
-	user, err := as.queries.CreateUser(ctx, store.CreateUserParams{
+	user, err = as.queries.CreateUser(ctx, store.CreateUserParams{
 		Name:     args.Name,
 		Email:    args.Email,
 		Password: string(hashedPassword),
