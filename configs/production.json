@@ -8,5 +8,6 @@
 	  "idleTimeout":120
 	},
 	"smtpHost": "smtp.gmail.com",
-	"smtpPort" : "587"
+	"smtpPort" : "587",
+	"redisHost": "localhost:6379"
   }
