@@ -53,7 +53,7 @@ func main() {
 	redisIn = db.ConnectRedis(log, configs.GetString("redisHost"))
 
 	//server
-	svc = server.New(log, configs.GetString("server.port"), configs.GetInt("server.readTimeout"), configs.GetInt("server.writeTimeout"))
+	svc = server.New(log, configs.GetString("PORT"), configs.GetInt("server.readTimeout"), configs.GetInt("server.writeTimeout"))
 	go svc.Start()
 	time.Sleep(2 * time.Second)
 	fmt.Println(constants.LOGO)

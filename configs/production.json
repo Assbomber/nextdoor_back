@@ -2,7 +2,6 @@
 	"appName":"myzone",
 	"environment": "development",
 	"server":{
-		"port":8080,
 	  "readTimeout":20,
 	  "writeTimeout":20,
 	  "idleTimeout":120
@@ -10,4 +9,4 @@
 	"smtpHost": "smtp.gmail.com",
 	"smtpPort" : "587",
 	"redisHost": "localhost:6379"
-  }
+}

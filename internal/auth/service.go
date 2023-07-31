@@ -124,8 +124,8 @@ func (as *authService) SendVerificationEmail(ctx context.Context, email string) 
 	// Compose the email
 	msg, otp := utils.GetOTPEmail()
 
-	smtpHost := configs.GetString("stmpHost")
-	smtpPort := configs.GetString("stmpPort")
+	smtpHost := configs.GetString("smtpHost")
+	smtpPort := configs.GetString("smtpPort")
 	smtpSecret := configs.GetString("SMTP_SECRET")
 
 	// Connect to the SMTP server
@@ -139,7 +139,7 @@ func (as *authService) SendVerificationEmail(ctx context.Context, email string) 
 	// Send the email
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, toList, []byte(msg))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error Sending email")
 	}
 	return nil
 }

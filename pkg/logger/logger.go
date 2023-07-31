@@ -26,7 +26,7 @@ func (l *Logger) Error(message string, err error) {
 }
 
 func (l *Logger) Fatal(message string) {
-	l.log.Error(message)
+	l.log.Fatal(message)
 }
 
 // Initializes the logger
