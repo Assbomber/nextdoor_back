@@ -12,6 +12,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ErrResponse struct {
+	Message string `json:"message"`
+}
+
 type StackTracer interface {
 	StackTrace() errors.StackTrace
 }
@@ -44,16 +48,18 @@ func HandleErrorResponses(log *logger.Logger, c *gin.Context, err error, extra .
 		if len(sliceErrs) > 0 {
 			c.JSON(http.StatusBadRequest, sliceErrs)
 		} else {
-			c.JSON(http.StatusBadRequest, err.Error())
+			c.JSON(http.StatusBadRequest, ErrResponse{Message: err.Error()})
 		}
+	case constants.ErrInvalidOTP:
+		c.JSON(http.StatusUnauthorized, ErrResponse{Message: err.Error()})
 	case constants.ErrUnexpectedSigningMethod:
-		c.JSON(http.StatusUnauthorized, err.Error())
+		c.JSON(http.StatusUnauthorized, ErrResponse{Message: err.Error()})
 	case constants.ErrInvalidJWT:
-		c.JSON(http.StatusUnauthorized, err.Error())
+		c.JSON(http.StatusUnauthorized, ErrResponse{Message: err.Error()})
 	case constants.ErrNoSuchUser:
-		c.JSON(http.StatusNotFound, err.Error())
+		c.JSON(http.StatusNotFound, ErrResponse{Message: err.Error()})
 	case constants.ErrWrongPassword:
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusUnauthorized, ErrResponse{Message: err.Error()})
 	default:
 		// printing stack trace
 		var errs string = err.Error() + "\n"
@@ -63,7 +69,7 @@ func HandleErrorResponses(log *logger.Logger, c *gin.Context, err error, extra .
 			}
 		}
 		log.Error(errs, nil)
-		c.JSON(http.StatusInternalServerError, "Oops! its not you, its us. Please try again later.")
+		c.JSON(http.StatusInternalServerError, ErrResponse{Message: "Oops! its not you, its us. Please try again later."})
 	}
 }
 

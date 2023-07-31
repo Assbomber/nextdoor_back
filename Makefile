@@ -6,6 +6,10 @@ start:
 	@go build -o build/myzone ./cmd/myzone
 	@./build/myzone
 
+doc:
+	@which swag || go install github.com/swaggo/swag/cmd/swag@latest
+	@swag init -g cmd/myzone/main.go
+
 sqlc:
 	@docker run --rm -v $(shell pwd):/src -w /src kjconroy/sqlc generate
 

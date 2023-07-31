@@ -3,13 +3,18 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"net/smtp"
 	"time"
 
+	"github.com/assbomber/myzone/configs"
 	store "github.com/assbomber/myzone/internal/store/sqlc"
 	"github.com/assbomber/myzone/pkg/constants"
 	"github.com/assbomber/myzone/pkg/logger"
+	"github.com/assbomber/myzone/pkg/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,6 +22,7 @@ import (
 type Service interface {
 	Login(context.Context, LoginRequest) (*LoginResponse, error)
 	Register(context.Context, RegisterRequest) (*RegisterResponse, error)
+	SendVerificationEmail(context.Context, string) error
 	generateJWT(userID int64) (string, error)
 	validateJWT(tokenStr string) (*MyCustomClaims, error)
 }
@@ -32,14 +38,16 @@ type authService struct {
 	jwtSecret string
 	logger    *logger.Logger
 	queries   *store.Queries
+	redisIn   *redis.Client
 }
 
 // Constructor for auth service
-func NewService(logger *logger.Logger, jwtSecret string, queries *store.Queries) Service {
+func NewService(logger *logger.Logger, jwtSecret string, queries *store.Queries, redisIn *redis.Client) Service {
 	return &authService{
 		jwtSecret: jwtSecret,
 		logger:    logger,
 		queries:   queries,
+		redisIn:   redisIn,
 	}
 }
 
@@ -75,6 +83,12 @@ func (as *authService) Login(ctx context.Context, args LoginRequest) (*LoginResp
 // Registers a new user and returns JWT
 func (as *authService) Register(ctx context.Context, args RegisterRequest) (*RegisterResponse, error) {
 
+	// Retreiving otp from redis
+	redisRes := as.redisIn.Get(ctx, utils.GetOTPRedisKey(args.Email))
+	if redisRes.Err() == redis.Nil || redisRes.Val() != fmt.Sprint(args.OTP) {
+		return nil, constants.ErrInvalidOTP
+	}
+
 	// Encryping pass
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(args.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -100,6 +114,34 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 	return &RegisterResponse{
 		Token: token,
 	}, nil
+}
+
+// Send the OTP to the provided email for verification
+func (as *authService) SendVerificationEmail(ctx context.Context, email string) error {
+	from := "myzoneapp01@gmail.com"
+	toList := []string{email}
+
+	// Compose the email
+	msg, otp := utils.GetOTPEmail()
+
+	smtpHost := configs.GetString("stmpHost")
+	smtpPort := configs.GetString("stmpPort")
+	smtpSecret := configs.GetString("SMTP_SECRET")
+
+	// Connect to the SMTP server
+	auth := smtp.PlainAuth("", from, smtpSecret, smtpHost)
+
+	// Save to redis
+	if err := as.redisIn.SetEx(ctx, utils.GetOTPRedisKey(email), otp, 1*time.Minute).Err(); err != nil {
+		return errors.Wrap(err, "Error saving otp to redis")
+	}
+
+	// Send the email
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, toList, []byte(msg))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Generates JWT using user id, or else returns err if any.

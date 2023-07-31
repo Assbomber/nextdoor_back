@@ -1,6 +1,13 @@
 FROM golang:1.20.5-alpine
+
 WORKDIR /myzone
+
 COPY . .
+
+RUN apk --update add redis 
+
 RUN go build -o build/myzone ./cmd/myzone
-CMD ["./build/myzone"]
-EXPOSE 8080
+
+CMD ["sh","-c","/usr/bin/redis-server --daemonize yes && ./build/myzone"]
+
+EXPOSE 8010

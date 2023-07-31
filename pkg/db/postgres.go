@@ -1,4 +1,4 @@
-package postgres
+package db
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 )
 
 // Establishes connection to postgres
-func Connect(log *logger.Logger, url string) *sql.DB {
+func ConnectPostgres(log *logger.Logger, url string) *sql.DB {
 	log.Info(constants.PENDING + " Connecting to Postgres...")
 	db, err := sql.Open("postgres", url)
 	if err != nil {

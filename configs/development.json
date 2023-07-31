@@ -6,5 +6,8 @@
 	  "readTimeout":20,
 	  "writeTimeout":20,
 	  "idleTimeout":120
-	}
+	},
+	"smtpHost": "smtp.gmail.com",
+	"smtpPort" : "587",
+	"redisHost": "0.0.0.0:6379"
   }
