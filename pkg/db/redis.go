@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/assbomber/myzone/pkg/constants"
@@ -11,6 +12,7 @@ import (
 
 func ConnectRedis(log *logger.Logger, redisHost, username, password string) *redis.Client {
 	log.Info(constants.PENDING + " Connecting to Redis...")
+	fmt.Println(redisHost, username, password)
 	redisOptions := &redis.Options{
 		Addr:     redisHost,
 		Username: username,
