@@ -50,7 +50,7 @@ func main() {
 	postgresDB := db.ConnectPostgres(log, configs.GetString("POSTGRES_URL"))
 	queries = store.New(postgresDB)
 	// redis
-	redisIn = db.ConnectRedis(log, configs.GetString("redisHost"))
+	redisIn = db.ConnectRedis(log, configs.GetString("REDIS_HOST"), configs.GetString("REDIS_USER"), configs.GetString("REDIS_PASS"))
 
 	//server
 	svc = server.New(log, configs.GetString("PORT"), configs.GetInt("server.readTimeout"), configs.GetInt("server.writeTimeout"))

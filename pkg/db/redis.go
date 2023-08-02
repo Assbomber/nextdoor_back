@@ -9,10 +9,12 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func ConnectRedis(log *logger.Logger, redisHost string) *redis.Client {
+func ConnectRedis(log *logger.Logger, redisHost, username, password string) *redis.Client {
 	log.Info(constants.PENDING + " Connecting to Redis...")
 	redisOptions := &redis.Options{
-		Addr: redisHost,
+		Addr:     redisHost,
+		Username: username,
+		Password: password,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
