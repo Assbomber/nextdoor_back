@@ -92,7 +92,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/auth.ResetPasswordRequest'
+          $ref: '#/definitions/auth.EmailVerificationRequest'
       produces:
       - application/json
       responses:
@@ -116,7 +116,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ErrResponse'
-      summary: Resets user password.
+      summary: Sends verification email.
       tags:
       - auth
   /auth/login:
@@ -187,6 +187,41 @@ paths:
           schema:
             $ref: '#/definitions/utils.ErrResponse'
       summary: API for new user registration.
+      tags:
+      - auth
+  /auth/reset:
+    post:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ErrResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ErrResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrResponse'
+      summary: Resets user password.
       tags:
       - auth
 swagger: "2.0"

@@ -18,7 +18,7 @@ func ConnectRedis(log *logger.Logger, redisHost, username, password string) *red
 		Username: username,
 		Password: password,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	client := redis.NewClient(redisOptions)
