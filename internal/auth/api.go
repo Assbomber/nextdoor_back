@@ -27,6 +27,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 	path.POST("/register", h.Register)
 	path.POST("/login", h.Login)
 	path.POST("/email_verification", h.SendVerificationEmail)
+	path.POST("/reset", h.ResetPassword)
 }
 
 // Register godoc
@@ -120,7 +121,7 @@ func (h *Handler) SendVerificationEmail(c *gin.Context) {
 // @Failure      401  {object}  utils.ErrResponse
 // @Failure      403  {object}  utils.ErrResponse
 // @Failure      500  {object}  utils.ErrResponse
-// @Router       /auth/email_verification [post]
+// @Router       /auth/reset [post]
 func (h *Handler) ResetPassword(c *gin.Context) {
 	var request ResetPasswordRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
