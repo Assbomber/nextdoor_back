@@ -29,3 +29,14 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Token string `json:"token"`
 }
+
+type ResetPasswordRequest struct {
+	// Required. User email
+	Email string `json:"email" binding:"required,email"`
+
+	// Required. User password. Min 8 characters, max 100 characters
+	Password string `json:"password" binding:"required,min=8,max=100"`
+
+	// Required. OTP. min 111111, max 999999
+	OTP int `json:"otp" binding:"required,min=111111,max=999999"`
+}

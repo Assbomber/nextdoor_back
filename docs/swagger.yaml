@@ -56,6 +56,26 @@ definitions:
       token:
         type: string
     type: object
+  auth.ResetPasswordRequest:
+    properties:
+      email:
+        description: Required. User email
+        type: string
+      otp:
+        description: Required. OTP. min 111111, max 999999
+        maximum: 999999
+        minimum: 111111
+        type: integer
+      password:
+        description: Required. User password. Min 8 characters, max 100 characters
+        maxLength: 100
+        minLength: 8
+        type: string
+    required:
+    - email
+    - otp
+    - password
+    type: object
   utils.ErrResponse:
     properties:
       message:
@@ -72,7 +92,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/auth.EmailVerificationRequest'
+          $ref: '#/definitions/auth.ResetPasswordRequest'
       produces:
       - application/json
       responses:
@@ -96,7 +116,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ErrResponse'
-      summary: Sends verification email.
+      summary: Resets user password.
       tags:
       - auth
   /auth/login:

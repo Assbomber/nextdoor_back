@@ -24,7 +24,7 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Sends verification email.",
+                "summary": "Resets user password.",
                 "parameters": [
                     {
                         "description": "Request body",
@@ -32,7 +32,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/auth.EmailVerificationRequest"
+                            "$ref": "#/definitions/auth.ResetPasswordRequest"
                         }
                     }
                 ],
@@ -256,6 +256,32 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "auth.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "otp",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "description": "Required. User email",
+                    "type": "string"
+                },
+                "otp": {
+                    "description": "Required. OTP. min 111111, max 999999",
+                    "type": "integer",
+                    "maximum": 999999,
+                    "minimum": 111111
+                },
+                "password": {
+                    "description": "Required. User password. Min 8 characters, max 100 characters",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 8
                 }
             }
         },

@@ -109,3 +109,30 @@ func (h *Handler) SendVerificationEmail(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "verification email sent"})
 }
+
+// ResetPassword godoc
+// @Summary      Resets user password.
+// @Tags         auth
+// @Produce      json
+// @Param        body   body      ResetPasswordRequest  true  "Request body"
+// @success 	 200 {object} utils.ErrResponse
+// @Failure      400  {object}  utils.ErrResponse
+// @Failure      401  {object}  utils.ErrResponse
+// @Failure      403  {object}  utils.ErrResponse
+// @Failure      500  {object}  utils.ErrResponse
+// @Router       /auth/email_verification [post]
+func (h *Handler) ResetPassword(c *gin.Context) {
+	var request ResetPasswordRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		utils.HandleErrorResponses(h.log, c, err)
+		return
+	}
+
+	err := h.service.ResetPassword(c.Request.Context(), request)
+	if err != nil {
+		utils.HandleErrorResponses(h.log, c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successful"})
+}

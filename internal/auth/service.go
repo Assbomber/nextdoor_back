@@ -23,6 +23,7 @@ type Service interface {
 	Login(context.Context, LoginRequest) (*LoginResponse, error)
 	Register(context.Context, RegisterRequest) (*RegisterResponse, error)
 	SendVerificationEmail(context.Context, string) error
+	ResetPassword(context.Context, ResetPasswordRequest) error
 	generateJWT(userID int64) (string, error)
 	validateJWT(tokenStr string) (*MyCustomClaims, error)
 }
@@ -141,8 +142,8 @@ func (as *authService) SendVerificationEmail(ctx context.Context, email string) 
 	// Connect to the SMTP server
 	auth := smtp.PlainAuth("", from, smtpSecret, smtpHost)
 
-	// Save to redis
-	if err := as.redisIn.SetEx(ctx, utils.GetOTPRedisKey(email), otp, 1*time.Minute).Err(); err != nil {
+	// Save to redis with expiry of 2 mins
+	if err := as.redisIn.SetEx(ctx, utils.GetOTPRedisKey(email), otp, 2*time.Minute).Err(); err != nil {
 		return errors.Wrap(err, "Error saving otp to redis")
 	}
 
@@ -151,6 +152,32 @@ func (as *authService) SendVerificationEmail(ctx context.Context, email string) 
 	if err != nil {
 		return errors.Wrap(err, "Error Sending email")
 	}
+	return nil
+}
+
+// Resets the user password
+func (as *authService) ResetPassword(ctx context.Context, args ResetPasswordRequest) error {
+	// Retreiving otp from redis
+	redisRes := as.redisIn.Get(ctx, utils.GetOTPRedisKey(args.Email))
+	if redisRes.Err() == redis.Nil || redisRes.Val() != fmt.Sprint(args.OTP) {
+		return constants.ErrInvalidOTP
+	}
+
+	// Encryping pass
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(args.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.Wrap(err, "Err generating hash password")
+	}
+
+	// Updating user pass in db
+	err = as.queries.UpdateUserPasswordByEmail(ctx, store.UpdateUserPasswordByEmailParams{
+		Email:    args.Email,
+		Password: string(hashedPassword),
+	})
+	if err != nil {
+		return errors.Wrap(err, "Error updating password")
+	}
+
 	return nil
 }
 

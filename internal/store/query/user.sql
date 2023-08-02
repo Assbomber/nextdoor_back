@@ -13,3 +13,8 @@ SELECT *
 FROM users
 WHERE email = $1
 LIMIT 1;
+
+-- name: UpdateUserPasswordByEmail :exec
+UPDATE users
+SET password = $2
+WHERE email = $1;
