@@ -21,7 +21,7 @@ type RegisterResponse struct {
 
 type LoginRequest struct {
 	// Required. User email
-	EmailOrUsername string `json:"email" binding:"required,email"`
+	Email string `json:"email" binding:"required,email"`
 	// Required. User password. Min 8 characters, max 100 characters
 	Password string `json:"password" binding:"required,min=8,max=100"`
 }

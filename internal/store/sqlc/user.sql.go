@@ -7,26 +7,34 @@ package store
 
 import (
 	"context"
+	"time"
 )
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     username,
     email,
-    password
+    password,
+    last_login
 ) VALUES (
-    $1,$2,$3
+    $1,$2,$3,$4
 ) RETURNING id, avatar, username, name, email, password, phone, created_at, last_login
 `
 
 type CreateUserParams struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password"`
+	LastLogin time.Time `json:"last_login"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email, arg.Password)
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Username,
+		arg.Email,
+		arg.Password,
+		arg.LastLogin,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -56,6 +64,35 @@ type GetUserByEmailOrUsernameParams struct {
 
 func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, arg GetUserByEmailOrUsernameParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmailOrUsername, arg.Email, arg.Username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Avatar,
+		&i.Username,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.Phone,
+		&i.CreatedAt,
+		&i.LastLogin,
+	)
+	return i, err
+}
+
+const updateUserLoginTimeByEmail = `-- name: UpdateUserLoginTimeByEmail :one
+UPDATE users
+SET last_login = $2
+WHERE email = $1
+RETURNING id, avatar, username, name, email, password, phone, created_at, last_login
+`
+
+type UpdateUserLoginTimeByEmailParams struct {
+	Email     string    `json:"email"`
+	LastLogin time.Time `json:"last_login"`
+}
+
+func (q *Queries) UpdateUserLoginTimeByEmail(ctx context.Context, arg UpdateUserLoginTimeByEmailParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserLoginTimeByEmail, arg.Email, arg.LastLogin)
 	var i User
 	err := row.Scan(
 		&i.ID,

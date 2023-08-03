@@ -2,9 +2,10 @@
 INSERT INTO users (
     username,
     email,
-    password
+    password,
+    last_login
 ) VALUES (
-    $1,$2,$3
+    $1,$2,$3,$4
 ) RETURNING *;
 
 
@@ -18,3 +19,9 @@ LIMIT 1;
 UPDATE users
 SET password = $2
 WHERE email = $1;
+
+-- name: UpdateUserLoginTimeByEmail :one
+UPDATE users
+SET last_login = $2
+WHERE email = $1
+RETURNING *;

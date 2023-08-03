@@ -55,10 +55,10 @@ func NewService(logger *logger.Logger, jwtSecret string, queries *store.Queries,
 // Verifies the user creds and returns JWT
 func (as *authService) Login(ctx context.Context, args LoginRequest) (*LoginResponse, error) {
 
-	// Fetching user in db
-	user, err := as.queries.GetUserByEmailOrUsername(ctx, store.GetUserByEmailOrUsernameParams{
-		Email:    args.EmailOrUsername,
-		Username: args.EmailOrUsername,
+	// Fetching user in db and updating lastlogin for him
+	user, err := as.queries.UpdateUserLoginTimeByEmail(ctx, store.UpdateUserLoginTimeByEmailParams{
+		Email:     args.Email,
+		LastLogin: time.Now(),
 	})
 	if err != nil {
 		// No rows, return user not found
@@ -117,9 +117,10 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 
 	// Creating user in db
 	user, err = as.queries.CreateUser(ctx, store.CreateUserParams{
-		Username: args.Username,
-		Email:    args.Email,
-		Password: string(hashedPassword),
+		Username:  args.Username,
+		Email:     args.Email,
+		Password:  string(hashedPassword),
+		LastLogin: time.Now(),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "Error creating user")
