@@ -40,7 +40,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
@@ -94,7 +94,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/auth.LoginResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -148,7 +160,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.RegisterResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/auth.RegisterResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -202,7 +226,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
@@ -276,20 +300,14 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "name",
                 "otp",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
                 "email": {
                     "description": "Required. User email",
                     "type": "string"
-                },
-                "name": {
-                    "description": "Required. User name. Max length=100, min length 1",
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 1
                 },
                 "otp": {
                     "description": "Required. OTP. min 111111, max 999999",
@@ -302,6 +320,12 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 8
+                },
+                "username": {
+                    "description": "Required. User name. Max length=100, min length 1",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
                 }
             }
         },
@@ -342,6 +366,15 @@ const docTemplate = `{
         "utils.ErrResponse": {
             "type": "object",
             "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
                 "message": {
                     "type": "string"
                 }

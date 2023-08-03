@@ -11,53 +11,62 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    name,
+    username,
     email,
     password
 ) VALUES (
     $1,$2,$3
-) RETURNING id, avatar, name, email, password, phone, created_at
+) RETURNING id, avatar, username, name, email, password, phone, created_at, last_login
 `
 
 type CreateUserParams struct {
-	Name     string `json:"name"`
+	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Name, arg.Email, arg.Password)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email, arg.Password)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Avatar,
+		&i.Username,
 		&i.Name,
 		&i.Email,
 		&i.Password,
 		&i.Phone,
 		&i.CreatedAt,
+		&i.LastLogin,
 	)
 	return i, err
 }
 
-const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, avatar, name, email, password, phone, created_at
+const getUserByEmailOrUsername = `-- name: GetUserByEmailOrUsername :one
+SELECT id, avatar, username, name, email, password, phone, created_at, last_login
 FROM users
-WHERE email = $1
+WHERE email = $1 OR username = $2
 LIMIT 1
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+type GetUserByEmailOrUsernameParams struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+}
+
+func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, arg GetUserByEmailOrUsernameParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmailOrUsername, arg.Email, arg.Username)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Avatar,
+		&i.Username,
 		&i.Name,
 		&i.Email,
 		&i.Password,
 		&i.Phone,
 		&i.CreatedAt,
+		&i.LastLogin,
 	)
 	return i, err
 }

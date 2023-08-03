@@ -30,11 +30,6 @@ definitions:
       email:
         description: Required. User email
         type: string
-      name:
-        description: Required. User name. Max length=100, min length 1
-        maxLength: 100
-        minLength: 1
-        type: string
       otp:
         description: Required. OTP. min 111111, max 999999
         maximum: 999999
@@ -45,11 +40,16 @@ definitions:
         maxLength: 100
         minLength: 8
         type: string
+      username:
+        description: Required. User name. Max length=100, min length 1
+        maxLength: 100
+        minLength: 1
+        type: string
     required:
     - email
-    - name
     - otp
     - password
+    - username
     type: object
   auth.RegisterResponse:
     properties:
@@ -81,6 +81,12 @@ definitions:
       message:
         type: string
     type: object
+  utils.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
@@ -99,7 +105,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.SuccessResponse'
         "400":
           description: Bad Request
           schema:
@@ -134,7 +140,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.LoginResponse'
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.LoginResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -169,7 +180,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.RegisterResponse'
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/auth.RegisterResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -204,7 +220,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.SuccessResponse'
         "400":
           description: Bad Request
           schema:

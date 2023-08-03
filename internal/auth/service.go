@@ -56,7 +56,10 @@ func NewService(logger *logger.Logger, jwtSecret string, queries *store.Queries,
 func (as *authService) Login(ctx context.Context, args LoginRequest) (*LoginResponse, error) {
 
 	// Fetching user in db
-	user, err := as.queries.GetUserByEmail(ctx, args.Email)
+	user, err := as.queries.GetUserByEmailOrUsername(ctx, store.GetUserByEmailOrUsernameParams{
+		Email:    args.EmailOrUsername,
+		Username: args.EmailOrUsername,
+	})
 	if err != nil {
 		// No rows, return user not found
 		if errors.Is(err, sql.ErrNoRows) {
@@ -91,13 +94,19 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 	}
 
 	// check if user already exist
-	user, err := as.queries.GetUserByEmail(ctx, args.Email)
+	user, err := as.queries.GetUserByEmailOrUsername(ctx, store.GetUserByEmailOrUsernameParams{
+		Email:    args.Email,
+		Username: args.Username,
+	})
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, errors.Wrap(err, "Error getting user")
 	}
 	// User already exist
 	if user.ID != 0 {
-		return nil, constants.ErrUserAlreadyExist
+		if user.Username == args.Username {
+			return nil, constants.ErrUsernameAlreadyExist
+		}
+		return nil, constants.ErrEmailAlreadyExist
 	}
 
 	// Encryping pass
@@ -108,7 +117,7 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 
 	// Creating user in db
 	user, err = as.queries.CreateUser(ctx, store.CreateUserParams{
-		Name:     args.Name,
+		Username: args.Username,
 		Email:    args.Email,
 		Password: string(hashedPassword),
 	})

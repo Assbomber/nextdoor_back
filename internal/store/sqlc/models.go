@@ -12,9 +12,11 @@ import (
 type User struct {
 	ID        int64          `json:"id"`
 	Avatar    sql.NullString `json:"avatar"`
-	Name      string         `json:"name"`
+	Username  string         `json:"username"`
+	Name      sql.NullString `json:"name"`
 	Email     string         `json:"email"`
 	Password  string         `json:"password"`
 	Phone     sql.NullString `json:"phone"`
 	CreatedAt time.Time      `json:"created_at"`
+	LastLogin time.Time      `json:"last_login"`
 }

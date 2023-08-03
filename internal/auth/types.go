@@ -2,7 +2,7 @@ package auth
 
 type RegisterRequest struct {
 	// Required. User name. Max length=100, min length 1
-	Name string `json:"name" binding:"required,max=100,min=1"`
+	Username string `json:"username" binding:"required,max=100,min=1"`
 	// Required. User email
 	Email string `json:"email" binding:"required,email"`
 	// Required. User password. Min 8 characters, max 100 characters
@@ -21,7 +21,7 @@ type RegisterResponse struct {
 
 type LoginRequest struct {
 	// Required. User email
-	Email string `json:"email" binding:"required,email"`
+	EmailOrUsername string `json:"email" binding:"required,email"`
 	// Required. User password. Min 8 characters, max 100 characters
 	Password string `json:"password" binding:"required,min=8,max=100"`
 }

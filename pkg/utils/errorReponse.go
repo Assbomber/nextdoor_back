@@ -15,6 +15,10 @@ import (
 type ErrResponse struct {
 	Message string `json:"message"`
 }
+type SuccessResponse struct {
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
 
 type StackTracer interface {
 	StackTrace() errors.StackTrace
@@ -50,7 +54,7 @@ func HandleErrorResponses(log *logger.Logger, c *gin.Context, err error, extra .
 		} else {
 			c.JSON(http.StatusBadRequest, ErrResponse{Message: err.Error()})
 		}
-	case constants.ErrUserAlreadyExist:
+	case constants.ErrEmailAlreadyExist:
 		c.JSON(http.StatusBadRequest, ErrResponse{Message: err.Error()})
 	case constants.ErrInvalidOTP:
 		c.JSON(http.StatusUnauthorized, ErrResponse{Message: err.Error()})
@@ -62,6 +66,8 @@ func HandleErrorResponses(log *logger.Logger, c *gin.Context, err error, extra .
 		c.JSON(http.StatusNotFound, ErrResponse{Message: err.Error()})
 	case constants.ErrWrongPassword:
 		c.JSON(http.StatusUnauthorized, ErrResponse{Message: err.Error()})
+	case constants.ErrUsernameAlreadyExist:
+		c.JSON(http.StatusBadRequest, ErrResponse{Message: err.Error()})
 	default:
 		// printing stack trace
 		var errs string = err.Error() + "\n"

@@ -1,6 +1,6 @@
 -- name: CreateUser :one
 INSERT INTO users (
-    name,
+    username,
     email,
     password
 ) VALUES (
@@ -8,10 +8,10 @@ INSERT INTO users (
 ) RETURNING *;
 
 
--- name: GetUserByEmail :one
+-- name: GetUserByEmailOrUsername :one
 SELECT *
 FROM users
-WHERE email = $1
+WHERE email = $1 OR username = $2
 LIMIT 1;
 
 -- name: UpdateUserPasswordByEmail :exec

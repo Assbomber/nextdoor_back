@@ -35,7 +35,7 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Tags         auth
 // @Produce      json
 // @Param        body   body      RegisterRequest  true  "Request body"
-// @success 	 200 {object} RegisterResponse
+// @success 	 200 {object} utils.SuccessResponse{data=RegisterResponse}
 // @Failure      400  {object}  utils.ErrResponse
 // @Failure      401  {object}  utils.ErrResponse
 // @Failure      403  {object}  utils.ErrResponse
@@ -54,7 +54,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusCreated, utils.SuccessResponse{Message: "Registration Successful", Data: res})
 }
 
 // Login godoc
@@ -62,7 +62,7 @@ func (h *Handler) Register(c *gin.Context) {
 // @Tags         auth
 // @Produce      json
 // @Param        body   body      LoginRequest  true  "Request body"
-// @success 	 200 {object} LoginResponse
+// @success 	 200 {object} utils.SuccessResponse{data=LoginResponse}
 // @Failure      400  {object}  utils.ErrResponse
 // @Failure      401  {object}  utils.ErrResponse
 // @Failure      403  {object}  utils.ErrResponse
@@ -81,7 +81,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusCreated, utils.SuccessResponse{Message: "Login Successful", Data: res})
 }
 
 // SendVerificationEmail godoc
@@ -89,7 +89,7 @@ func (h *Handler) Login(c *gin.Context) {
 // @Tags         auth
 // @Produce      json
 // @Param        body   body      EmailVerificationRequest  true  "Request body"
-// @success 	 200 {object} utils.ErrResponse
+// @success 	 200 {object} utils.SuccessResponse
 // @Failure      400  {object}  utils.ErrResponse
 // @Failure      401  {object}  utils.ErrResponse
 // @Failure      403  {object}  utils.ErrResponse
@@ -108,7 +108,7 @@ func (h *Handler) SendVerificationEmail(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "verification email sent"})
+	c.JSON(http.StatusOK, utils.SuccessResponse{Message: "Verification email sent."})
 }
 
 // ResetPassword godoc
@@ -116,7 +116,7 @@ func (h *Handler) SendVerificationEmail(c *gin.Context) {
 // @Tags         auth
 // @Produce      json
 // @Param        body   body      ResetPasswordRequest  true  "Request body"
-// @success 	 200 {object} utils.ErrResponse
+// @success 	 200 {object} utils.SuccessResponse
 // @Failure      400  {object}  utils.ErrResponse
 // @Failure      401  {object}  utils.ErrResponse
 // @Failure      403  {object}  utils.ErrResponse
@@ -135,5 +135,5 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successful"})
+	c.JSON(http.StatusOK, utils.SuccessResponse{Message: "Password reset successful"})
 }
