@@ -107,6 +107,27 @@ definitions:
     - location
     - name
     type: object
+  users.UserDetailsResponse:
+    properties:
+      avatar:
+        type: string
+      birthDate:
+        type: string
+      gender:
+        type: string
+      lastLogin:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      userID:
+        type: integer
+      username:
+        type: string
+    type: object
   utils.Response:
     properties:
       data: {}
@@ -266,6 +287,41 @@ paths:
       summary: Resets user password.
       tags:
       - auth
+  /users/details:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/users.UserDetailsResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user details
+      tags:
+      - users
   /users/onboarding:
     post:
       parameters:

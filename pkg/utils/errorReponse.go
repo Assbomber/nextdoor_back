@@ -52,7 +52,6 @@ func HandleErrorResponses(log *logger.Logger, c *gin.Context, errr error, extra 
 	// if validation err, extracting actual err
 	sliceErrs := make([]BindingErrorMsg, 0)
 	if _, ok := err.(validator.ValidationErrors); ok {
-		fmt.Println("trrrr")
 		errs := getBindingErrors(err)
 		sliceErrs = append(sliceErrs, errs...)
 		err = constants.ErrValidation
@@ -82,15 +81,17 @@ func HandleErrorResponses(log *logger.Logger, c *gin.Context, errr error, extra 
 			c.JSON(http.StatusBadRequest, Response{Message: err.Error() + ", " + strings.Join(extra, ",")})
 		}
 	case jwt.ErrTokenMalformed:
-		c.AbortWithStatusJSON(http.StatusUnauthorized, Response{Message: err.Error()})
+		c.JSON(http.StatusUnauthorized, Response{Message: err.Error()})
 	case constants.ErrEmailAlreadyExist:
 		c.JSON(http.StatusConflict, Response{Message: err.Error()})
 	case constants.ErrInvalidOTP:
 		c.JSON(http.StatusUnauthorized, Response{Message: err.Error()})
 	case constants.ErrUnexpectedSigningMethod:
-		c.AbortWithStatusJSON(http.StatusUnauthorized, Response{Message: err.Error()})
+		c.JSON(http.StatusUnauthorized, Response{Message: err.Error()})
 	case constants.ErrInvalidJWT:
-		c.AbortWithStatusJSON(http.StatusUnauthorized, Response{Message: err.Error()})
+		c.JSON(http.StatusUnauthorized, Response{Message: err.Error()})
+	case constants.ErrInvalidUserID:
+		c.JSON(http.StatusBadRequest, Response{Message: err.Error()})
 	case constants.ErrNoSuchUser:
 		c.JSON(http.StatusNotFound, Response{Message: err.Error()})
 	case constants.ErrWrongPassword:
@@ -98,7 +99,9 @@ func HandleErrorResponses(log *logger.Logger, c *gin.Context, errr error, extra 
 	case constants.ErrUsernameAlreadyExist:
 		c.JSON(http.StatusConflict, Response{Message: err.Error()})
 	case constants.ErrNoAuthPresent:
-		c.AbortWithStatusJSON(http.StatusUnauthorized, Response{Message: err.Error()})
+		c.JSON(http.StatusUnauthorized, Response{Message: err.Error()})
+	case constants.ErrForbidden:
+		c.JSON(http.StatusForbidden, Response{Message: err.Error()})
 	default:
 		// printing stack trace
 		var errs string = errr.Error() + "\n"

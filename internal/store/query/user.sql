@@ -45,3 +45,10 @@ INSERT INTO users_locations (
 UPDATE users_locations
 SET active = false
 WHERE active = true AND user_id = $1;
+
+-- name: GetUserDetails :one
+SELECT u.id, u.username,u.name,u.birth_date,u.gender, u.email, u.avatar, u.last_login, ST_X(ul.location)::double precision AS longitude, ST_Y(ul.location)::double precision AS latitude
+FROM users u
+LEFT JOIN users_locations ul
+    ON u.id = ul.user_id
+WHERE ul.active AND u.id = $1;

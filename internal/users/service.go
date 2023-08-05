@@ -7,6 +7,7 @@ import (
 	"time"
 
 	store "github.com/assbomber/myzone/internal/store/sqlc"
+	"github.com/assbomber/myzone/pkg/constants"
 	"github.com/assbomber/myzone/pkg/logger"
 	"github.com/assbomber/myzone/pkg/utils"
 	"github.com/pkg/errors"
@@ -15,6 +16,7 @@ import (
 
 type Service interface {
 	CreateOnboardingDetails(context.Context, int64, OnboardingRequest) error
+	GetUserDetails(context.Context, int64) (*store.GetUserDetailsRow, error)
 }
 
 type userService struct {
@@ -86,4 +88,15 @@ func (us *userService) CreateOnboardingDetails(ctx context.Context, userID int64
 	}
 
 	return tx.Commit()
+}
+
+func (us *userService) GetUserDetails(ctx context.Context, userID int64) (*store.GetUserDetailsRow, error) {
+	details, err := us.queries.GetUserDetails(ctx, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, constants.ErrNoSuchUser
+		}
+		return nil, errors.Wrap(err, "Error getting user details")
+	}
+	return &details, nil
 }

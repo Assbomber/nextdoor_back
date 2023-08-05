@@ -11,14 +11,16 @@ import (
 
 // Struct for JWT custom claims
 type MyCustomClaims struct {
-	UserID int64
+	UserID  int64
+	IsAdmin bool
 	jwt.RegisteredClaims
 }
 
 // Generates JWT using user id, or else returns err if any.
-func GenerateJWT(userID int64, jwtSecret string) (string, error) {
+func GenerateJWT(userID int64, isAdmin bool, jwtSecret string) (string, error) {
 	claims := MyCustomClaims{
-		UserID: userID,
+		UserID:  userID,
+		IsAdmin: isAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 6, 0)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

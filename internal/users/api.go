@@ -29,6 +29,7 @@ func NewHandler(log *logger.Logger, middlewares *middlewares.Middleware, service
 func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 	path := rg.Group("/users")
 	path.POST("/onboarding", h.middlewares.MustBeLoggedIn, h.CreateOnboardingDetails)
+	path.GET("/details", h.middlewares.MustBeLoggedIn, h.GetUserDetails)
 }
 
 // CreateOnboardingDetails godoc
@@ -59,4 +60,37 @@ func (h *Handler) CreateOnboardingDetails(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, utils.Response{Message: "Onboarding details saved successfully"})
+}
+
+// GetUserDetails godoc
+// @Summary     Get user details
+// @Tags         users
+// @Produce      json
+// @success 	 200 {object} utils.Response{data=UserDetailsResponse}
+// @Failure      400  {object}  utils.Response
+// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /users/details [get]
+// @Security ApiKeyAuth
+func (h *Handler) GetUserDetails(c *gin.Context) {
+	userID := c.GetInt64(constants.USER_ID)
+
+	result, err := h.service.GetUserDetails(c.Request.Context(), userID)
+	if err != nil {
+		utils.HandleErrorResponses(h.log, c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.Response{Message: "Onboarding details saved successfully", Data: UserDetailsResponse{
+		UserID:    result.ID,
+		Username:  result.Username,
+		Name:      result.Name.String,
+		Avatar:    result.Avatar.String,
+		BirthDate: result.BirthDate.Time,
+		LastLogin: result.LastLogin,
+		Gender:    (string)(result.Gender.Genders),
+		Latitude:  result.Latitude,
+		Longitude: result.Longitude,
+	}})
 }

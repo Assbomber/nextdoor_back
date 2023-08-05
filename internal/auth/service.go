@@ -70,7 +70,7 @@ func (as *authService) Login(ctx context.Context, args LoginRequest) (*LoginResp
 	}
 
 	// Creating JWT
-	token, err := utils.GenerateJWT(user.ID, as.jwtSecret)
+	token, err := utils.GenerateJWT(user.ID, false, as.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("error creating JWT: %w", err)
 	}
@@ -122,7 +122,7 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 	}
 
 	// Creating JWT
-	token, err := utils.GenerateJWT(user.ID, as.jwtSecret)
+	token, err := utils.GenerateJWT(user.ID, false, as.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("error creating JWT: %w", err)
 	}

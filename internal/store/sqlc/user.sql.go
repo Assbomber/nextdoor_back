@@ -120,6 +120,45 @@ func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, arg GetUserByEma
 	return i, err
 }
 
+const getUserDetails = `-- name: GetUserDetails :one
+SELECT u.id, u.username,u.name,u.birth_date,u.gender, u.email, u.avatar, u.last_login, ST_X(ul.location)::double precision AS longitude, ST_Y(ul.location)::double precision AS latitude
+FROM users u
+LEFT JOIN users_locations ul
+    ON u.id = ul.user_id
+WHERE ul.active AND u.id = $1
+`
+
+type GetUserDetailsRow struct {
+	ID        int64          `json:"id"`
+	Username  string         `json:"username"`
+	Name      sql.NullString `json:"name"`
+	BirthDate sql.NullTime   `json:"birth_date"`
+	Gender    NullGenders    `json:"gender"`
+	Email     string         `json:"email"`
+	Avatar    sql.NullString `json:"avatar"`
+	LastLogin time.Time      `json:"last_login"`
+	Longitude float64        `json:"longitude"`
+	Latitude  float64        `json:"latitude"`
+}
+
+func (q *Queries) GetUserDetails(ctx context.Context, id int64) (GetUserDetailsRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserDetails, id)
+	var i GetUserDetailsRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Name,
+		&i.BirthDate,
+		&i.Gender,
+		&i.Email,
+		&i.Avatar,
+		&i.LastLogin,
+		&i.Longitude,
+		&i.Latitude,
+	)
+	return i, err
+}
+
 const inactiveUserLocation = `-- name: InactiveUserLocation :exec
 UPDATE users_locations
 SET active = false
