@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -18,7 +19,7 @@ INSERT INTO users (
     last_login
 ) VALUES (
     $1,$2,$3,$4
-) RETURNING id, avatar, username, name, email, password, phone, created_at, last_login
+) RETURNING id, avatar, username, name, email, password, phone, gender, birth_date, created_at, last_login, is_deleted
 `
 
 type CreateUserParams struct {
@@ -44,14 +45,51 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Password,
 		&i.Phone,
+		&i.Gender,
+		&i.BirthDate,
 		&i.CreatedAt,
 		&i.LastLogin,
+		&i.IsDeleted,
+	)
+	return i, err
+}
+
+const createUserLocation = `-- name: CreateUserLocation :one
+INSERT INTO users_locations (
+    user_id,
+    location, 
+    active -- Defines if this location is currently active or not
+) VALUES (
+    $1, ST_SetSRID(ST_MakePoint($3::double precision, $4::double precision),4326), $2
+) RETURNING id, user_id, location, active
+`
+
+type CreateUserLocationParams struct {
+	UserID    int64   `json:"user_id"`
+	Active    bool    `json:"active"`
+	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"latitude"`
+}
+
+func (q *Queries) CreateUserLocation(ctx context.Context, arg CreateUserLocationParams) (UsersLocation, error) {
+	row := q.db.QueryRowContext(ctx, createUserLocation,
+		arg.UserID,
+		arg.Active,
+		arg.Longitude,
+		arg.Latitude,
+	)
+	var i UsersLocation
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Location,
+		&i.Active,
 	)
 	return i, err
 }
 
 const getUserByEmailOrUsername = `-- name: GetUserByEmailOrUsername :one
-SELECT id, avatar, username, name, email, password, phone, created_at, last_login
+SELECT id, avatar, username, name, email, password, phone, gender, birth_date, created_at, last_login, is_deleted
 FROM users
 WHERE email = $1 OR username = $2
 LIMIT 1
@@ -73,17 +111,54 @@ func (q *Queries) GetUserByEmailOrUsername(ctx context.Context, arg GetUserByEma
 		&i.Email,
 		&i.Password,
 		&i.Phone,
+		&i.Gender,
+		&i.BirthDate,
 		&i.CreatedAt,
 		&i.LastLogin,
+		&i.IsDeleted,
 	)
 	return i, err
+}
+
+const inactiveUserLocation = `-- name: InactiveUserLocation :exec
+UPDATE users_locations
+SET active = false
+WHERE active = true AND user_id = $1
+`
+
+func (q *Queries) InactiveUserLocation(ctx context.Context, userID int64) error {
+	_, err := q.db.ExecContext(ctx, inactiveUserLocation, userID)
+	return err
+}
+
+const updateBasicUserDetails = `-- name: UpdateBasicUserDetails :exec
+UPDATE users
+SET name = $1, gender = $2, birth_date=$3
+WHERE ID = $4
+`
+
+type UpdateBasicUserDetailsParams struct {
+	Name      sql.NullString `json:"name"`
+	Gender    NullGenders    `json:"gender"`
+	BirthDate sql.NullTime   `json:"birth_date"`
+	UserID    int64          `json:"UserID"`
+}
+
+func (q *Queries) UpdateBasicUserDetails(ctx context.Context, arg UpdateBasicUserDetailsParams) error {
+	_, err := q.db.ExecContext(ctx, updateBasicUserDetails,
+		arg.Name,
+		arg.Gender,
+		arg.BirthDate,
+		arg.UserID,
+	)
+	return err
 }
 
 const updateUserLoginTimeByEmail = `-- name: UpdateUserLoginTimeByEmail :one
 UPDATE users
 SET last_login = $2
 WHERE email = $1
-RETURNING id, avatar, username, name, email, password, phone, created_at, last_login
+RETURNING id, avatar, username, name, email, password, phone, gender, birth_date, created_at, last_login, is_deleted
 `
 
 type UpdateUserLoginTimeByEmailParams struct {
@@ -102,8 +177,11 @@ func (q *Queries) UpdateUserLoginTimeByEmail(ctx context.Context, arg UpdateUser
 		&i.Email,
 		&i.Password,
 		&i.Phone,
+		&i.Gender,
+		&i.BirthDate,
 		&i.CreatedAt,
 		&i.LastLogin,
+		&i.IsDeleted,
 	)
 	return i, err
 }

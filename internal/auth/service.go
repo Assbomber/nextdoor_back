@@ -12,8 +12,9 @@ import (
 	"github.com/assbomber/myzone/pkg/constants"
 	"github.com/assbomber/myzone/pkg/logger"
 	"github.com/assbomber/myzone/pkg/utils"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/pkg/errors"
+
+	"errors"
+
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -24,29 +25,23 @@ type Service interface {
 	Register(context.Context, RegisterRequest) (*RegisterResponse, error)
 	SendVerificationEmail(context.Context, string) error
 	ResetPassword(context.Context, ResetPasswordRequest) error
-	generateJWT(userID int64) (string, error)
-	validateJWT(tokenStr string) (*MyCustomClaims, error)
-}
-
-// Struct for JWT custom claims
-type MyCustomClaims struct {
-	UserID int64
-	jwt.RegisteredClaims
 }
 
 // Auth service struct
 type authService struct {
 	jwtSecret string
 	logger    *logger.Logger
+	db        *sql.DB
 	queries   *store.Queries
 	redisIn   *redis.Client
 }
 
 // Constructor for auth service
-func NewService(logger *logger.Logger, jwtSecret string, queries *store.Queries, redisIn *redis.Client) Service {
+func NewService(logger *logger.Logger, jwtSecret string, db *sql.DB, queries *store.Queries, redisIn *redis.Client) Service {
 	return &authService{
 		jwtSecret: jwtSecret,
 		logger:    logger,
+		db:        db,
 		queries:   queries,
 		redisIn:   redisIn,
 	}
@@ -65,7 +60,7 @@ func (as *authService) Login(ctx context.Context, args LoginRequest) (*LoginResp
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, constants.ErrNoSuchUser
 		}
-		return nil, errors.Wrap(err, "Error getting user")
+		return nil, fmt.Errorf("error getting user: %w", err)
 	}
 
 	// comparing passwords
@@ -75,9 +70,9 @@ func (as *authService) Login(ctx context.Context, args LoginRequest) (*LoginResp
 	}
 
 	// Creating JWT
-	token, err := as.generateJWT(user.ID)
+	token, err := utils.GenerateJWT(user.ID, as.jwtSecret)
 	if err != nil {
-		return nil, errors.Wrap(err, "Err creating JWT")
+		return nil, fmt.Errorf("error creating JWT: %w", err)
 	}
 	return &LoginResponse{
 		Token: token,
@@ -99,7 +94,7 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 		Username: args.Username,
 	})
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, errors.Wrap(err, "Error getting user")
+		return nil, fmt.Errorf("error getting user: %w", err)
 	}
 	// User already exist
 	if user.ID != 0 {
@@ -112,7 +107,7 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 	// Encryping pass
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(args.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, errors.Wrap(err, "Err generating hash password")
+		return nil, fmt.Errorf("error generating hash password: %w", err)
 	}
 
 	// Creating user in db
@@ -123,13 +118,13 @@ func (as *authService) Register(ctx context.Context, args RegisterRequest) (*Reg
 		LastLogin: time.Now(),
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "Error creating user")
+		return nil, fmt.Errorf("error creating user: %w", err)
 	}
 
 	// Creating JWT
-	token, err := as.generateJWT(user.ID)
+	token, err := utils.GenerateJWT(user.ID, as.jwtSecret)
 	if err != nil {
-		return nil, errors.Wrap(err, "Err creating JWT")
+		return nil, fmt.Errorf("error creating JWT: %w", err)
 	}
 
 	return &RegisterResponse{
@@ -154,13 +149,13 @@ func (as *authService) SendVerificationEmail(ctx context.Context, email string) 
 
 	// Save to redis with expiry of 2 mins
 	if err := as.redisIn.SetEx(ctx, utils.GetOTPRedisKey(email), otp, 2*time.Minute).Err(); err != nil {
-		return errors.Wrap(err, "Error saving otp to redis")
+		return fmt.Errorf("error saving OTP to redis: %w", err)
 	}
 
 	// Send the email
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, toList, []byte(msg))
 	if err != nil {
-		return errors.Wrap(err, "Error Sending email")
+		return fmt.Errorf("error sending email: %w", err)
 	}
 	return nil
 }
@@ -176,7 +171,7 @@ func (as *authService) ResetPassword(ctx context.Context, args ResetPasswordRequ
 	// Encryping pass
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(args.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return errors.Wrap(err, "Err generating hash password")
+		return fmt.Errorf("error generating pass hash: %w", err)
 	}
 
 	// Updating user pass in db
@@ -185,48 +180,8 @@ func (as *authService) ResetPassword(ctx context.Context, args ResetPasswordRequ
 		Password: string(hashedPassword),
 	})
 	if err != nil {
-		return errors.Wrap(err, "Error updating password")
+		return fmt.Errorf("error updating user password: %w", err)
 	}
 
 	return nil
-}
-
-// Generates JWT using user id, or else returns err if any.
-func (as *authService) generateJWT(userID int64) (string, error) {
-	claims := MyCustomClaims{
-		UserID: userID,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 6, 0)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenStr, err := token.SignedString([]byte(as.jwtSecret))
-	if err != nil {
-		return "", err
-	}
-	return tokenStr, nil
-}
-
-// Helps validate JWT using provided secret in JWT_SECRET environment variable.
-// If Success, returns MyCustomClaims, else error
-func (as *authService) validateJWT(tokenStr string) (*MyCustomClaims, error) {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-
-		// verifing if signing method is same
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, constants.ErrUnexpectedSigningMethod
-		}
-		return []byte(as.jwtSecret), nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if claims, ok := token.Claims.(MyCustomClaims); ok && token.Valid {
-		return &claims, nil
-	} else {
-		return nil, constants.ErrInvalidJWT
-	}
 }

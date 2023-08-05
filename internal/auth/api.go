@@ -35,11 +35,11 @@ func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
 // @Tags         auth
 // @Produce      json
 // @Param        body   body      RegisterRequest  true  "Request body"
-// @success 	 200 {object} utils.SuccessResponse{data=RegisterResponse}
-// @Failure      400  {object}  utils.ErrResponse
-// @Failure      401  {object}  utils.ErrResponse
-// @Failure      403  {object}  utils.ErrResponse
-// @Failure      500  {object}  utils.ErrResponse
+// @success 	 200 {object} utils.Response{data=RegisterResponse}
+// @Failure      400  {object}  utils.Response
+// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
 // @Router       /auth/register [post]
 func (h *Handler) Register(c *gin.Context) {
 	var request RegisterRequest
@@ -54,7 +54,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, utils.SuccessResponse{Message: "Registration Successful", Data: res})
+	c.JSON(http.StatusCreated, utils.Response{Message: "Registration Successful", Data: res})
 }
 
 // Login godoc
@@ -62,11 +62,11 @@ func (h *Handler) Register(c *gin.Context) {
 // @Tags         auth
 // @Produce      json
 // @Param        body   body      LoginRequest  true  "Request body"
-// @success 	 200 {object} utils.SuccessResponse{data=LoginResponse}
-// @Failure      400  {object}  utils.ErrResponse
-// @Failure      401  {object}  utils.ErrResponse
-// @Failure      403  {object}  utils.ErrResponse
-// @Failure      500  {object}  utils.ErrResponse
+// @success 	 200 {object} utils.Response{data=LoginResponse}
+// @Failure      400  {object}  utils.Response
+// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
 // @Router       /auth/login [post]
 func (h *Handler) Login(c *gin.Context) {
 	var request LoginRequest
@@ -81,7 +81,7 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, utils.SuccessResponse{Message: "Login Successful", Data: res})
+	c.JSON(http.StatusCreated, utils.Response{Message: "Login Successful", Data: res})
 }
 
 // SendVerificationEmail godoc
@@ -89,11 +89,11 @@ func (h *Handler) Login(c *gin.Context) {
 // @Tags         auth
 // @Produce      json
 // @Param        body   body      EmailVerificationRequest  true  "Request body"
-// @success 	 200 {object} utils.SuccessResponse
-// @Failure      400  {object}  utils.ErrResponse
-// @Failure      401  {object}  utils.ErrResponse
-// @Failure      403  {object}  utils.ErrResponse
-// @Failure      500  {object}  utils.ErrResponse
+// @success 	 200 {object} utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
 // @Router       /auth/email_verification [post]
 func (h *Handler) SendVerificationEmail(c *gin.Context) {
 	var request EmailVerificationRequest
@@ -108,7 +108,7 @@ func (h *Handler) SendVerificationEmail(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, utils.SuccessResponse{Message: "Verification email sent."})
+	c.JSON(http.StatusOK, utils.Response{Message: "Verification email sent."})
 }
 
 // ResetPassword godoc
@@ -116,11 +116,11 @@ func (h *Handler) SendVerificationEmail(c *gin.Context) {
 // @Tags         auth
 // @Produce      json
 // @Param        body   body      ResetPasswordRequest  true  "Request body"
-// @success 	 200 {object} utils.SuccessResponse
-// @Failure      400  {object}  utils.ErrResponse
-// @Failure      401  {object}  utils.ErrResponse
-// @Failure      403  {object}  utils.ErrResponse
-// @Failure      500  {object}  utils.ErrResponse
+// @success 	 200 {object} utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
 // @Router       /auth/reset [post]
 func (h *Handler) ResetPassword(c *gin.Context) {
 	var request ResetPasswordRequest
@@ -135,5 +135,5 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, utils.SuccessResponse{Message: "Password reset successful"})
+	c.JSON(http.StatusOK, utils.Response{Message: "Password reset successful"})
 }

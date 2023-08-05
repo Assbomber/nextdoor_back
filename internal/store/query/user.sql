@@ -25,3 +25,23 @@ UPDATE users
 SET last_login = $2
 WHERE email = $1
 RETURNING *;
+
+-- name: UpdateBasicUserDetails :exec
+UPDATE users
+SET name = $1, gender = $2, birth_date=$3
+WHERE ID = sqlc.arg('UserID');
+
+
+-- name: CreateUserLocation :one
+INSERT INTO users_locations (
+    user_id,
+    location, 
+    active -- Defines if this location is currently active or not
+) VALUES (
+    $1, ST_SetSRID(ST_MakePoint(sqlc.arg(longitude)::double precision, sqlc.arg(latitude)::double precision),4326), $2
+) RETURNING *;
+
+-- name: InactiveUserLocation :exec
+UPDATE users_locations
+SET active = false
+WHERE active = true AND user_id = $1;

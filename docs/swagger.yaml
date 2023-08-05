@@ -76,12 +76,38 @@ definitions:
     - otp
     - password
     type: object
-  utils.ErrResponse:
+  users.OnboardingRequest:
     properties:
-      message:
+      birthDate:
         type: string
+      gender:
+        enum:
+        - male
+        - female
+        - other
+        type: string
+      location:
+        properties:
+          latitude:
+            type: number
+          longitude:
+            type: number
+        required:
+        - latitude
+        - longitude
+        type: object
+      name:
+        description: User name
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - birthDate
+    - gender
+    - location
+    - name
     type: object
-  utils.SuccessResponse:
+  utils.Response:
     properties:
       data: {}
       message:
@@ -105,23 +131,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utils.SuccessResponse'
+            $ref: '#/definitions/utils.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
       summary: Sends verification email.
       tags:
       - auth
@@ -141,7 +167,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/utils.SuccessResponse'
+            - $ref: '#/definitions/utils.Response'
             - properties:
                 data:
                   $ref: '#/definitions/auth.LoginResponse'
@@ -149,19 +175,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
       summary: API for user login.
       tags:
       - auth
@@ -181,7 +207,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/utils.SuccessResponse'
+            - $ref: '#/definitions/utils.Response'
             - properties:
                 data:
                   $ref: '#/definitions/auth.RegisterResponse'
@@ -189,19 +215,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
       summary: API for new user registration.
       tags:
       - auth
@@ -220,24 +246,66 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utils.SuccessResponse'
+            $ref: '#/definitions/utils.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ErrResponse'
+            $ref: '#/definitions/utils.Response'
       summary: Resets user password.
       tags:
       - auth
+  /users/onboarding:
+    post:
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/users.OnboardingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Api thats create basic onboarding details for a user
+      tags:
+      - users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

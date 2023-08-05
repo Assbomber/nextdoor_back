@@ -6,8 +6,53 @@ package store
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 )
+
+type Genders string
+
+const (
+	GendersMale   Genders = "male"
+	GendersFemale Genders = "female"
+	GendersOthers Genders = "others"
+)
+
+func (e *Genders) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Genders(s)
+	case string:
+		*e = Genders(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Genders: %T", src)
+	}
+	return nil
+}
+
+type NullGenders struct {
+	Genders Genders `json:"genders"`
+	Valid   bool    `json:"valid"` // Valid is true if Genders is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullGenders) Scan(value interface{}) error {
+	if value == nil {
+		ns.Genders, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Genders.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullGenders) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Genders), nil
+}
 
 type User struct {
 	ID        int64          `json:"id"`
@@ -17,6 +62,16 @@ type User struct {
 	Email     string         `json:"email"`
 	Password  string         `json:"password"`
 	Phone     sql.NullString `json:"phone"`
+	Gender    NullGenders    `json:"gender"`
+	BirthDate sql.NullTime   `json:"birth_date"`
 	CreatedAt time.Time      `json:"created_at"`
 	LastLogin time.Time      `json:"last_login"`
+	IsDeleted bool           `json:"is_deleted"`
+}
+
+type UsersLocation struct {
+	ID       int64       `json:"id"`
+	UserID   int64       `json:"user_id"`
+	Location interface{} `json:"location"`
+	Active   bool        `json:"active"`
 }

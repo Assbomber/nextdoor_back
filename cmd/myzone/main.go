@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"os/signal"
@@ -10,11 +11,14 @@ import (
 	"github.com/assbomber/myzone/configs"
 	"github.com/assbomber/myzone/docs"
 	"github.com/assbomber/myzone/internal/auth"
+	"github.com/assbomber/myzone/internal/middlewares"
 	"github.com/assbomber/myzone/internal/server"
 	store "github.com/assbomber/myzone/internal/store/sqlc"
+	"github.com/assbomber/myzone/internal/users"
 	"github.com/assbomber/myzone/pkg/constants"
 	"github.com/assbomber/myzone/pkg/db"
 	"github.com/assbomber/myzone/pkg/logger"
+	"github.com/assbomber/myzone/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 
@@ -26,11 +30,15 @@ import (
 
 var (
 	log     *logger.Logger
+	pdb     *sql.DB
 	queries *store.Queries
 	svc     *server.Server
 	redisIn *redis.Client
 )
 
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	// Initializing swagger info
 	docs.SwaggerInfo.BasePath = "/api"
@@ -43,12 +51,13 @@ func main() {
 	} else {
 		gin.SetMode(gin.DebugMode)
 	}
+	utils.InitGinCustomValidations()
 
 	// logger
 	log = logger.InitLogger()
 	// postgres
-	postgresDB := db.ConnectPostgres(log, configs.GetString("POSTGRES_URL"))
-	queries = store.New(postgresDB)
+	pdb = db.ConnectPostgres(log, configs.GetString("POSTGRES_URL"))
+	queries = store.New(pdb)
 	// redis
 	redisIn = db.ConnectRedis(log, configs.GetString("REDIS_HOST"), configs.GetString("REDIS_USER"), configs.GetString("REDIS_PASS"))
 
@@ -66,7 +75,7 @@ func main() {
 	signal.Notify(channel, syscall.SIGINT, syscall.SIGTERM)
 	<-channel
 	svc.Shutdown()
-	postgresDB.Close()
+	pdb.Close()
 }
 
 func registerRoutes() {
@@ -77,8 +86,16 @@ func registerRoutes() {
 
 	baseRoute := svc.Router.Group("/api")
 
+	// middleware
+	mw := middlewares.New(log, configs.GetString(constants.JWT_SECRET))
+
 	// Auth
-	authService := auth.NewService(log, configs.GetString(constants.JWT_SECRET), queries, redisIn)
+	authService := auth.NewService(log, configs.GetString(constants.JWT_SECRET), pdb, queries, redisIn)
 	authHandler := auth.NewHandler(log, authService)
 	authHandler.RegisterRoutes(baseRoute)
+
+	// Users
+	userService := users.NewService(log, pdb, queries, redisIn)
+	userHandler := users.NewHandler(log, mw, userService)
+	userHandler.RegisterRoutes(baseRoute)
 }
