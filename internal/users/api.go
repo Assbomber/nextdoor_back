@@ -82,7 +82,7 @@ func (h *Handler) GetUserDetails(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, utils.Response{Message: "Onboarding details saved successfully", Data: UserDetailsResponse{
+	c.JSON(http.StatusOK, utils.Response{Data: UserDetailsResponse{
 		UserID:    result.ID,
 		Username:  result.Username,
 		Name:      result.Name.String,
